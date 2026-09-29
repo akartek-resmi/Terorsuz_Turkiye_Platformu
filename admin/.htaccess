@@ -1,0 +1,17 @@
+# Panel arama motorlarına açılmaz, önbelleğe alınmaz.
+<IfModule mod_headers.c>
+  Header always set X-Robots-Tag "noindex, nofollow, noarchive"
+  Header always set X-Frame-Options "DENY"
+  Header always set Cache-Control "no-store, no-cache, must-revalidate, private"
+  Header always set Referrer-Policy "same-origin"
+</IfModule>
+
+# Şema dosyası, tek seferlik veri aktarım scripti ve geliştirici araçları
+# tarayıcıdan hiç erişilemez (seed.php ayrıca kod içinde de CLI'a kilitli).
+<FilesMatch "\.(sql|md|log|bak|old|orig)$">
+  Require all denied
+</FilesMatch>
+
+<Files "seed.php">
+  Require all denied
+</Files>

@@ -1,0 +1,86 @@
+# ==========================================================
+# GÜVENLİK SERTLEŞTİRMESİ
+# (Değiştirmeden önce CLAUDE.md §10'u okuyun.)
+# ==========================================================
+
+# Klasörde index dosyası yoksa içeriği listeleme.
+Options -Indexes
+
+# Apache sürüm/işletim sistemi bilgisini hata sayfalarında gösterme.
+ServerSignature Off
+
+<FilesMatch "\.js(@.*)?$">
+  ForceType application/javascript
+</FilesMatch>
+<FilesMatch "\.css(@.*)?$">
+  ForceType text/css
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  # PHP sürümünü sızdıran başlık.
+  Header unset X-Powered-By
+  Header always unset X-Powered-By
+
+  # Tarayıcı, sunucunun bildirdiği MIME tipini tahminle değiştirmesin —
+  # yüklenmiş bir dosyanın script olarak yorumlanmasını engeller.
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Siteyi başka bir sayfanın iframe'ine gömmeyi engelle (clickjacking).
+  Header always set X-Frame-Options "SAMEORIGIN"
+
+  # Dış sitelere tam adres (sorgu dizesi dahil) sızdırma.
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Sitenin kullanmadığı tarayıcı yetenekleri kapalı.
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+
+  # HTTPS'e geçildikten sonra tarayıcı bir daha düz http denemesin.
+  # Yalnızca https üzerinden gelen isteklere eklenir; http'de etkisizdir.
+  Header always set Strict-Transport-Security "max-age=31536000" "expr=%{HTTPS} == 'on'"
+</IfModule>
+
+# Nokta ile başlayan dosyalar (.git, .env, .htpasswd) ve kaynak/yedek dosyalar.
+<FilesMatch "^\.|\.(sql|md|log|bak|old|orig|save|swp|ini|sh|yml|yaml|lock|json|dist)$">
+  Require all denied
+</FilesMatch>
+
+# Node döneminden kalan, artık kullanılmayan sunucu scripti (kaynak kodu sızdırır).
+<Files "server.js">
+  Require all denied
+</Files>
+
+# Terörsüz Türkiye Platformu - eski WordPress (index.php/...) yollarından
+# yeni statik temiz yollara 301 yönlendirme
+
+RewriteEngine On
+
+# Sitenin kullanmadığı HTTP metotları reddedilir. TRACE/TRACK, Cross-Site
+# Tracing için kullanılabiliyor; PUT/DELETE/PATCH bu sitede hiç gerekmiyor.
+# (TraceEnable Off yalnızca sunucu yapılandırmasında geçerli, .htaccess'te değil —
+# bu yüzden rewrite ile kapatılıyor.)
+RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK|PUT|DELETE|PATCH|CONNECT)$ [NC]
+RewriteRule .* - [F,L]
+
+# Ortak şablon parçaları ve geliştirici araçları doğrudan çağrılamaz.
+RewriteRule ^includes/ - [F,L]
+RewriteRule ^admin/tools/ - [F,L]
+
+# Admin dizini için göreli slash yönlendirmesi
+RewriteRule ^admin$ /admin/ [R=301,L]
+
+# Haber detay sayfaları: temiz URL (/haberler/<slug>/) -> goster.php?slug=... (dahili, adres çubuğu değişmez)
+RewriteRule ^haberler/([a-z0-9-]+)/?$ haberler/goster.php?slug=$1 [L,QSA]
+
+# Haber detay sayfaları (tarih bazlı eski yapıdan /haberler/<slug>/ yapısına)
+RewriteRule ^index\.php/2026/03/28/ankarada-terorsuz-turkiyeye-evet/?$ /haberler/ankarada-terorsuz-turkiyeye-evet/ [R=301,L]
+RewriteRule ^index\.php/2026/03/28/terorsuz-turkiye-platformu-genel-baskani-turgut-lenkten-81-ilde-birlik-ve-dayanisma-hamlesi/?$ /haberler/terorsuz-turkiye-platformu-genel-baskani-turgut-lenkten-81-ilde-birlik-ve-dayanisma-hamlesi/ [R=301,L]
+
+# İl ve İlçe Başkanlıkları ve Haberler
+RewriteRule ^index\.php/il-ve-ilce-baskanliklari/?$ /il-ve-ilce-baskanliklari/ [R=301,L]
+RewriteRule ^index\.php/haberler/?$ /haberler/ [R=301,L]
+
+# Anasayfa (eski permalink kökü)
+RewriteRule ^index\.php/?$ / [R=301,L]
+
+# Diğer tüm eski index.php/... yolları (category, tag, feed, wp-json, comments vb.) anasayfaya
+RewriteRule ^index\.php/.*$ / [R=301,L]

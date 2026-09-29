@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Yönetim paneli ve şablon parçaları dizine eklenmesin.
+Disallow: /admin/
+Disallow: /includes/
+Disallow: /wp-includes/
