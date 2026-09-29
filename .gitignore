@@ -1,0 +1,34 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Composer / Node leftovers
+/vendor/
+composer.phar
+/node_modules/
+
+# Logs and caches
+*.log
+*.cache
+
+# Editor and OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Backups
+*.bak
+*.old
+*.orig
+*.save
+*.sql.gz
+*.sql.bak
+
+# Local agent metadata
+.cursor/
